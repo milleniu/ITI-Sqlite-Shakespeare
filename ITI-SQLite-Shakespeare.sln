@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.438
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ITI.Sqlite.Shakespeare", "ITI.Sqlite.Shakespeare\ITI.Sqlite.Shakespeare.csproj", "{931C9A8A-A10F-4068-A00E-2C20229AB102}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{311B06E4-33B4-4913-9C99-65E2BA83040F}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{931C9A8A-A10F-4068-A00E-2C20229AB102}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{931C9A8A-A10F-4068-A00E-2C20229AB102}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{931C9A8A-A10F-4068-A00E-2C20229AB102}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{931C9A8A-A10F-4068-A00E-2C20229AB102}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {237003CE-E25F-446B-83B1-8E32465F06A2}
+	EndGlobalSection
+EndGlobal
