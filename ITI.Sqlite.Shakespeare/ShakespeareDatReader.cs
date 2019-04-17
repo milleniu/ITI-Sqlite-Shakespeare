@@ -1,39 +1,39 @@
 using System;
+using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace ITI.Sqlite.Shakespeare
 {
     public sealed class ShakespeareDatReader
     {
-        private const string ValueDelimiter = "|";
-        private const string RecordDelimiter = "\n";
+        private readonly Stream _stream;
+        private readonly string _valueDelimiter;
+        private readonly string _recordDelimiter;
+        private readonly Decoder _decoder;
+        private readonly Span<char> _buffer;
 
-        private ReadOnlyMemory<char> _memory;
-        private int _index;
         private bool _isInRecord;
 
         public ReadOnlyMemory<char> Current { get; private set; }
-        public int CurrentIndex { get; private set; }
 
-        public ShakespeareDatReader( string input )
-            : this( input.AsMemory() )
+        public ShakespeareDatReader
+        (
+            Stream stream,
+            string valueDelimiter = "|",
+            string recordDelimiter = "\n",
+            Decoder decoder = null
+        )
         {
-        }
-
-        public ShakespeareDatReader( ReadOnlyMemory<char> memory )
-        {
-            _memory = memory;
+            _stream = stream;
+            _valueDelimiter = valueDelimiter;
+            _recordDelimiter = recordDelimiter;
+            _decoder = decoder ?? Encoding.UTF8.GetDecoder();
+            _buffer = new Span<char>();
         }
 
         public bool MoveNextRecord()
         {
-            if( _memory.IsEmpty )
-            {
-                Current = ReadOnlyMemory<char>.Empty;
-                CurrentIndex = -1;
-                return false;
-            }
-
             if( _isInRecord )
                 while( MoveNextValue() ) { }
 
@@ -48,57 +48,40 @@ namespace ITI.Sqlite.Shakespeare
             if( !_isInRecord )
             {
                 Current = ReadOnlyMemory<char>.Empty;
-                CurrentIndex = -1;
                 return false;
             }
 
-            var span = _memory.Span;
-            var valueDelimiterSpan = ValueDelimiter.AsSpan();
-            var recordDelimiterSpan = RecordDelimiter.AsSpan();
+            var valueDelimiter = _valueDelimiter.AsSpan();
+            var recordDelimiter = _recordDelimiter.AsSpan();
 
-            var length = span.Length;
-            var i = 0;
-
-            while( i < length )
+            while( true )
             {
-                if( IsAtDelimiter( span, valueDelimiterSpan, i ) )
+                var b = _stream.ReadByte();
+                if( b == -1 ) break;
+
+                if( _decoder.GetChars(new ReadOnlySpan<byte>(new []{ (byte)b }), _buffer, true ) == 0 )
+                    continue;
+
+                if( IsAtDelimiter(_buffer, valueDelimiter) )
                 {
-                    Move( i );
                     _isInRecord = true;
                     return true;
                 }
 
-                if( IsAtDelimiter( span, recordDelimiterSpan, i ) )
+                if( IsAtDelimiter( _buffer, recordDelimiter ) )
                 {
-                    Move( i );
                     _isInRecord = false;
                     return true;
                 }
-
-                ++i;
             }
 
             Current = _memory;
-            CurrentIndex = _index;
-            _memory = ReadOnlyMemory<char>.Empty;
-            _index = -1;
             _isInRecord = false;
             return true;
         }
 
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        private static bool IsAtDelimiter( ReadOnlySpan<char> span, ReadOnlySpan<char> delimiter, int i )
-            => span[i] == delimiter[0];
-
-        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        private void Move( int delimiterPosition )
-        {
-            Current = _memory.Slice( 0, delimiterPosition );
-            CurrentIndex = _index;
-
-            var moveAmount = delimiterPosition + 1;
-            _memory = _memory.Slice( moveAmount );
-            _index += moveAmount;
-        }
+        private static bool IsAtDelimiter( ReadOnlySpan<char> span, ReadOnlySpan<char> delimiter )
+            => span[0] == delimiter[0];
     }
 }
