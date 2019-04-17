@@ -1,6 +1,10 @@
 using System;
+using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
+using ITI.Sqlite.Shakespeare.Database;
+using ITI.Sqlite.Shakespeare.Processing;
 
 namespace ITI.Sqlite.Shakespeare
 {
@@ -12,30 +16,42 @@ namespace ITI.Sqlite.Shakespeare
             var filePath = args[1];
 
             var sw = new Stopwatch();
-            const int runs = 100;
-            long sum = 0;
+            sw.Start();
 
-            for( var i = 0; i < runs; ++i )
+            var fileProcessor = new FileProcessor();
+            fileProcessor.LoadFile( filePath );
+
+            StringBuilder sb = null;
+
+            using( var connection = new SQLiteConnection( $"Data source={dbPath};Version=3;" ) )
             {
-                sw.Start();
-
-                var reader = new ShakespeareDatReader( File.ReadAllText( filePath ) );
-                while( reader.MoveNextRecord() )
+                try
                 {
-                    while( reader.MoveNextValue() )
-                    {
-                    }
+                    connection.Open();
+                    var transaction = connection.BeginTransaction();
+
+                    sb = fileProcessor.ProcessFile( connection );
+
+                    transaction.Commit();
                 }
-
-                sw.Stop();
-
-                sum += sw.ElapsedMilliseconds;
-                Console.WriteLine( $"Run {i}: {sw.ElapsedMilliseconds}ms / avg: {sum / (i + 1)}" );
-
-                sw.Reset();
+                catch( Exception exception )
+                {
+                    var foregroundColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine( $"Exception occured: {exception.Message}" );
+                    Console.WriteLine( exception.StackTrace );
+                    Console.ForegroundColor = foregroundColor;
+                }
+                finally
+                {
+                    connection.Close();
+                }
             }
 
-            Console.WriteLine( sum / runs );
+
+            sw.Stop();
+            if( sb != null ) Console.WriteLine( sb );
+            Console.WriteLine( $"Run: {sw.ElapsedMilliseconds}ms" );
         }
     }
 }

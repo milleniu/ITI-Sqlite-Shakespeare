@@ -1,9 +1,9 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace ITI.Sqlite.Shakespeare
+namespace ITI.Sqlite.Shakespeare.Processing
 {
-    public sealed class ShakespeareDatReader
+    internal sealed class DatReader
     {
         private const string ValueDelimiter = "|";
         private const string RecordDelimiter = "\n";
@@ -15,12 +15,12 @@ namespace ITI.Sqlite.Shakespeare
         public ReadOnlyMemory<char> Current { get; private set; }
         public int CurrentIndex { get; private set; }
 
-        public ShakespeareDatReader( string input )
+        public DatReader( string input )
             : this( input.AsMemory() )
         {
         }
 
-        public ShakespeareDatReader( ReadOnlyMemory<char> memory )
+        public DatReader( ReadOnlyMemory<char> memory )
         {
             _memory = memory;
         }
