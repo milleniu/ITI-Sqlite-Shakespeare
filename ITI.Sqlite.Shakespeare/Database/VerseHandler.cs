@@ -2,14 +2,16 @@ using System;
 using System.Collections.Concurrent;
 using System.Data.SQLite;
 using System.Threading;
+using Dapper;
 using ITI.Sqlite.Shakespeare.Models;
 
 namespace ITI.Sqlite.Shakespeare.Database
 {
-    internal sealed class TiradeHandler
+    internal sealed class VerseHandler
     {
         private readonly SQLiteConnection _connection;
-        private readonly BlockingCollection<Tirade> _queue;
+        private readonly SQLiteTransaction _transaction;
+        private readonly BlockingCollection<Verse> _queue;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly Thread _processThread;
 
@@ -19,10 +21,11 @@ namespace ITI.Sqlite.Shakespeare.Database
         public bool IsRunning => _stopFlag == 0;
         public CancellationToken StopToken => _cancellationTokenSource.Token;
 
-        public TiradeHandler( SQLiteConnection connection )
+        public VerseHandler( SQLiteConnection connection, SQLiteTransaction transaction )
         {
             _connection = connection ?? throw new ArgumentNullException( nameof( connection ) );
-            _queue = new BlockingCollection<Tirade>();
+            _transaction = transaction ?? throw new ArgumentNullException( nameof( transaction ) );
+            _queue = new BlockingCollection<Verse>();
             _cancellationTokenSource = new CancellationTokenSource();
             _processThread = new Thread( Process ) { IsBackground = true };
         }
@@ -32,7 +35,7 @@ namespace ITI.Sqlite.Shakespeare.Database
             _processThread.Start();
         }
 
-        public void Handle( Tirade item )
+        public void Handle( in Verse item )
         {
             if( _stopFlag == 0 ) _queue.Add( item, StopToken );
         }
@@ -48,9 +51,17 @@ namespace ITI.Sqlite.Shakespeare.Database
             }
         }
 
-        private void ProcessItem( in Tirade item )
+        private void ProcessItem( in Verse item )
         {
-            Console.WriteLine( item );
+            _connection.Execute
+            (
+                @"
+                    insert into texte( id_piece, id_tirade, numero_vers, texte )
+                        values( @PieceId, @TiradeId, @VerseId, @Text );
+                ",
+                new { PieceId = item.PieceId, TiradeId = item.TiradeId, VerseId = item.VerseId, Text = item.Text },
+                _transaction
+            );
         }
 
         public bool Stop()

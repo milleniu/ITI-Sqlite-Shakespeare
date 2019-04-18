@@ -3,6 +3,7 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using ITI.Sqlite.Shakespeare.Database;
 using ITI.Sqlite.Shakespeare.Processing;
 
@@ -10,7 +11,7 @@ namespace ITI.Sqlite.Shakespeare
 {
     internal static class Program
     {
-        private static void Main( string[] args )
+        private static async Task Main( string[] args )
         {
             var dbPath = args[0];
             var filePath = args[1];
@@ -19,18 +20,16 @@ namespace ITI.Sqlite.Shakespeare
             sw.Start();
 
             var fileProcessor = new FileProcessor();
-            fileProcessor.LoadFile( filePath );
-
-            StringBuilder sb = null;
+            await fileProcessor.LoadFile( filePath );
 
             using( var connection = new SQLiteConnection( $"Data source={dbPath};Version=3;" ) )
             {
                 try
                 {
-                    connection.Open();
+                    await connection.OpenAsync();
                     var transaction = connection.BeginTransaction();
 
-                    sb = fileProcessor.ProcessFile( connection );
+                    await fileProcessor.ProcessFile( connection, transaction );
 
                     transaction.Commit();
                 }
@@ -50,7 +49,6 @@ namespace ITI.Sqlite.Shakespeare
 
 
             sw.Stop();
-            if( sb != null ) Console.WriteLine( sb );
             Console.WriteLine( $"Run: {sw.ElapsedMilliseconds}ms" );
         }
     }
