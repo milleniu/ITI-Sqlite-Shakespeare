@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Threading.Tasks;
 using Dapper;
@@ -10,13 +10,13 @@ namespace ITI.Sqlite.Shakespeare.Database
     {
         private readonly SQLiteConnection _connection;
         private readonly SQLiteTransaction _transaction;
-        private readonly ConcurrentDictionary<string, int> _dictionary;
+        private readonly Dictionary<string, int> _dictionary;
 
         public CharacterHandler( SQLiteConnection connection, SQLiteTransaction transaction )
         {
             _connection = connection ?? throw new ArgumentNullException( nameof( connection ) );
             _transaction = transaction ?? throw new ArgumentNullException( nameof( transaction ) );
-            _dictionary = new ConcurrentDictionary<string, int>();
+            _dictionary = new Dictionary<string, int>();
         }
 
         public async ValueTask<int> GetCharacterId( string character )

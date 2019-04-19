@@ -2,18 +2,20 @@ using System;
 
 namespace ITI.Sqlite.Shakespeare.Models
 {
-    public readonly struct Verse
+    public readonly struct ParsedVerse
     {
         public readonly int PieceId;
         public readonly int TiradeId;
-        public readonly int VerseId;
-        public readonly ReadOnlyMemory<char> Text;
+        public readonly int? Verse;
+        public readonly int? VerseId;
+        public readonly string Text;
 
-        public Verse( ReadOnlyMemory<char> text, int verseId, int tiradeId, int pieceId )
+        public ParsedVerse( int verseId, int pieceId, int tiradeId, int? verse, string text )
         {
             Text = text;
             VerseId = verseId;
             TiradeId = tiradeId;
+            Verse = verse;
             PieceId = pieceId;
         }
     }

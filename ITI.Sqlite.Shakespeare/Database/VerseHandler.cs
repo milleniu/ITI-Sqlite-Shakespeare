@@ -11,7 +11,7 @@ namespace ITI.Sqlite.Shakespeare.Database
     {
         private readonly SQLiteConnection _connection;
         private readonly SQLiteTransaction _transaction;
-        private readonly BlockingCollection<Verse> _queue;
+        private readonly BlockingCollection<ParsedVerse> _queue;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly Thread _processThread;
 
@@ -25,7 +25,7 @@ namespace ITI.Sqlite.Shakespeare.Database
         {
             _connection = connection ?? throw new ArgumentNullException( nameof( connection ) );
             _transaction = transaction ?? throw new ArgumentNullException( nameof( transaction ) );
-            _queue = new BlockingCollection<Verse>();
+            _queue = new BlockingCollection<ParsedVerse>();
             _cancellationTokenSource = new CancellationTokenSource();
             _processThread = new Thread( Process ) { IsBackground = true };
         }
@@ -35,7 +35,7 @@ namespace ITI.Sqlite.Shakespeare.Database
             _processThread.Start();
         }
 
-        public void Handle( in Verse item )
+        public void Handle( in ParsedVerse item )
         {
             if( _stopFlag == 0 ) _queue.Add( item, StopToken );
         }
@@ -51,15 +51,15 @@ namespace ITI.Sqlite.Shakespeare.Database
             }
         }
 
-        private void ProcessItem( in Verse item )
+        private void ProcessItem( in ParsedVerse item )
         {
             _connection.Execute
             (
                 @"
-                    insert into texte( id_piece, id_tirade, numero_vers, texte )
-                        values( @PieceId, @TiradeId, @VerseId, @Text );
+                    insert into texte( id, id_piece, id_tirade, numero_vers, texte )
+                        values( @VerseId, @PieceId, @TiradeId, @VerseId, @Text );
                 ",
-                new { PieceId = item.PieceId, TiradeId = item.TiradeId, VerseId = item.VerseId, Text = item.Text },
+                new { item.VerseId, item.PieceId, item.TiradeId, item.Verse, item.Text },
                 _transaction
             );
         }
