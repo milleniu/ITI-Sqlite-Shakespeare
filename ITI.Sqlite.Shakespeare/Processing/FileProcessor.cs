@@ -33,58 +33,30 @@ namespace ITI.Sqlite.Shakespeare.Processing
             if( connection == null ) throw new ArgumentNullException( nameof( connection ) );
             if( _reader == null ) throw new InvalidOperationException( "You must call LoadFile beforehand" );
 
-            var pieceHandler = new PieceHandler( connection, transaction );
-            var characterHandler = new CharacterHandler( connection, transaction );
-            var tiradeHandler = new TiradeHandler( connection, transaction );
-            var verseHandler = new VerseHandler( connection, transaction );
+            var verseHandler = new ParsedLineHandler( connection, transaction );
             verseHandler.Start();
-
-            var currentTiradeId = int.MinValue;
-            var tiradeId = int.MinValue;
 
             while( _reader.MoveNextRecord() )
             {
                 _reader.MoveNextValue();
-                var verseId = int.Parse( _reader.Current.Span );
+                var verse = _reader.Current;
 
                 _reader.MoveNextValue();
-                var pieceId = await pieceHandler.GetPieceId( _reader.Current.ToString() );
+                var piece = _reader.Current;
 
                 _reader.MoveNextValue();
-                var parsedTiradeId = _reader.Current.IsEmpty ? -1 : int.Parse( _reader.Current.Span );
+                var tirade = _reader.Current;
 
                 _reader.MoveNextValue();
-                int? act;
-                int? scene;
-                int? verse;
-                if( _reader.Current.IsEmpty )
-                {
-                    act = null;
-                    scene = null;
-                    verse = null;
-                }
-                else
-                {
-                    var composite = _reader.Current.ToString().Split( '.' ).ToArray();
-                    act = int.Parse( composite[0] );
-                    scene = int.Parse( composite[1] );
-                    verse = int.Parse( composite[2] );
-                }
+                var tiradeInfo = _reader.Current;
 
                 _reader.MoveNextValue();
-                var characterId = await characterHandler.GetCharacterId( _reader.Current.ToString() );
+                var character = _reader.Current;
 
                 _reader.MoveNextValue();
-                var text = _reader.Current.ToString();
+                var text = _reader.Current;
 
-                if( parsedTiradeId != currentTiradeId )
-                {
-                    currentTiradeId = parsedTiradeId;
-                    tiradeId = await tiradeHandler.GenerateTirade( pieceId, characterId, act, scene );
-                }
-
-                Debug.Assert( tiradeId != int.MinValue );
-                verseHandler.Handle( new ParsedVerse( verseId, pieceId, tiradeId, verse, text ) );
+                verseHandler.Handle( new ParsedLine( verse, piece, tirade, tiradeInfo, character, text ) );
             }
 
             verseHandler.Stop();
