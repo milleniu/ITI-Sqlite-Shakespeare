@@ -28,7 +28,7 @@ namespace ITI.Sqlite.Shakespeare.Processing
             _reader = new DatReader( content );
         }
 
-        public async Task ProcessFile( SQLiteConnection connection, SQLiteTransaction transaction )
+        public void ProcessFile( SQLiteConnection connection, SQLiteTransaction transaction )
         {
             if( connection == null ) throw new ArgumentNullException( nameof( connection ) );
             if( _reader == null ) throw new InvalidOperationException( "You must call LoadFile beforehand" );

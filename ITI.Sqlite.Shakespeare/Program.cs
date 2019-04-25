@@ -29,7 +29,7 @@ namespace ITI.Sqlite.Shakespeare
                     await connection.OpenAsync();
                     var transaction = connection.BeginTransaction();
 
-                    await fileProcessor.ProcessFile( connection, transaction );
+                    fileProcessor.ProcessFile( connection, transaction );
 
                     transaction.Commit();
                 }
