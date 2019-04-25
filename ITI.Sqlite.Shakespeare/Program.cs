@@ -15,8 +15,6 @@ namespace ITI.Sqlite.Shakespeare
             var sw = new Stopwatch();
             sw.Start();
 
-            var fileProcessor = new FileProcessor();
-            await fileProcessor.LoadFile( filePath );
 
             using( var connection = new SQLiteConnection( $"Data source={dbPath};Version=3;" ) )
             {
@@ -25,7 +23,7 @@ namespace ITI.Sqlite.Shakespeare
                     await connection.OpenAsync();
                     var transaction = connection.BeginTransaction();
 
-                    await fileProcessor.ProcessFile( connection, transaction );
+                    await (await FileProcessor.GetFileProcessor( connection, transaction, filePath )).ProcessFile();
 
                     transaction.Commit();
                 }
