@@ -48,7 +48,7 @@ namespace ITI.Sqlite.Shakespeare.Processing
                 var verseId = int.Parse( _reader.Current.Span );
 
                 _reader.MoveNextValue();
-                var pieceId = await pieceHandler.GetPieceId( _reader.Current.ToString() );
+                var pieceId = await pieceHandler.GetPieceId( new string( _reader.Current.Span ) );
 
                 _reader.MoveNextValue();
                 var parsedTiradeId = _reader.Current.IsEmpty ? -1 : int.Parse( _reader.Current.Span );
@@ -65,17 +65,17 @@ namespace ITI.Sqlite.Shakespeare.Processing
                 }
                 else
                 {
-                    var composite = _reader.Current.ToString().Split( '.' ).ToArray();
+                    var composite = new string( _reader.Current.Span ).Split( '.' ).ToArray();
                     act = int.Parse( composite[0] );
                     scene = int.Parse( composite[1] );
                     verse = int.Parse( composite[2] );
                 }
 
                 _reader.MoveNextValue();
-                var characterId = await characterHandler.GetCharacterId( _reader.Current.ToString() );
+                var characterId = await characterHandler.GetCharacterId( new string( _reader.Current.Span ) );
 
                 _reader.MoveNextValue();
-                var text = _reader.Current.ToString();
+                var text = new string( _reader.Current.Span );
 
                 if( parsedTiradeId != currentTiradeId )
                 {
