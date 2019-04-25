@@ -15,7 +15,6 @@ namespace ITI.Sqlite.Shakespeare
             var sw = new Stopwatch();
             sw.Start();
 
-
             using( var connection = new SQLiteConnection( $"Data source={dbPath};Version=3;" ) )
             {
                 try
@@ -41,9 +40,8 @@ namespace ITI.Sqlite.Shakespeare
                 }
             }
 
-
             sw.Stop();
-            Console.WriteLine( $"Run: {sw.ElapsedMilliseconds}ms" );
+            Console.WriteLine( $"Ran for {sw.ElapsedMilliseconds}ms" );
         }
     }
 }
