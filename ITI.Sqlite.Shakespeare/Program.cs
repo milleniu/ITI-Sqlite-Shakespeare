@@ -1,11 +1,7 @@
 using System;
 using System.Data.SQLite;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
-using ITI.Sqlite.Shakespeare.Database;
-using ITI.Sqlite.Shakespeare.Processing;
 
 namespace ITI.Sqlite.Shakespeare
 {

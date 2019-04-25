@@ -6,9 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ITI.Sqlite.Shakespeare.Database;
-using ITI.Sqlite.Shakespeare.Models;
 
-namespace ITI.Sqlite.Shakespeare.Processing
+namespace ITI.Sqlite.Shakespeare
 {
     internal class FileProcessor
     {

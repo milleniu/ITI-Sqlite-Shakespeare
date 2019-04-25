@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace ITI.Sqlite.Shakespeare.Processing
+namespace ITI.Sqlite.Shakespeare
 {
     internal sealed class DatReader
     {
