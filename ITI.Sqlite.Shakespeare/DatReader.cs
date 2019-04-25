@@ -1,41 +1,39 @@
 using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace ITI.Sqlite.Shakespeare
 {
-    internal sealed class DatReader
+    internal sealed class DatReader : IDisposable
     {
-        private const string ValueDelimiter = "|";
-        private const string RecordDelimiter = "\n";
+        private readonly Stream _stream;
+        private readonly char[] _buffer;
 
-        private ReadOnlyMemory<char> _memory;
-        private int _index;
         private bool _isInRecord;
+        private int _bufferLength;
 
-        public ReadOnlyMemory<char> Current { get; private set; }
-        public int CurrentIndex { get; private set; }
+        private const byte ValueDelimiter = (byte)'|';
+        private const byte RecordDelimiter = (byte)'\n';
+        
+        public ReadOnlyMemory<char> Current { private set; get; }
 
-        public DatReader( string input )
-            : this( input.AsMemory() )
+        public DatReader( Stream stream )
         {
-        }
-
-        public DatReader( ReadOnlyMemory<char> memory )
-        {
-            _memory = memory;
+            _stream = stream;
+            _buffer = new char[2048];
+            _bufferLength = 0;
         }
 
         public bool MoveNextRecord()
         {
-            if( _memory.IsEmpty )
+            if( _stream.Position == _stream.Length )
             {
                 Current = ReadOnlyMemory<char>.Empty;
-                CurrentIndex = -1;
                 return false;
             }
 
             if( _isInRecord )
-                while( MoveNextValue() ) { }
+                while( MoveNextValue() );
 
             if( !_isInRecord )
                 _isInRecord = true;
@@ -45,60 +43,53 @@ namespace ITI.Sqlite.Shakespeare
 
         public bool MoveNextValue()
         {
-            if( !_isInRecord )
+            while( true )
             {
-                Current = ReadOnlyMemory<char>.Empty;
-                CurrentIndex = -1;
-                return false;
-            }
-
-            var span = _memory.Span;
-            var valueDelimiterSpan = ValueDelimiter.AsSpan();
-            var recordDelimiterSpan = RecordDelimiter.AsSpan();
-
-            var length = span.Length;
-            var i = 0;
-
-            while( i < length )
-            {
-                if( IsAtDelimiter( span, valueDelimiterSpan, i ) )
+                var b = _stream.ReadByte();
+                if( b != -1 )
                 {
-                    Move( i );
-                    _isInRecord = true;
-                    return true;
+                    switch (b)
+                    {
+                        case ValueDelimiter:
+                            _isInRecord = true;
+                            ProcessBuffer();
+                            return false;
+
+                        case RecordDelimiter:
+                            _isInRecord = false;
+                            ProcessBuffer();
+                            return true;
+
+                        default:
+                            _buffer[_bufferLength++] = (char)b;
+                            break;
+                    }
                 }
-
-                if( IsAtDelimiter( span, recordDelimiterSpan, i ) )
+                else
                 {
-                    Move( i );
+                    ProcessBuffer();
                     _isInRecord = false;
                     return true;
                 }
-
-                ++i;
             }
-
-            Current = _memory;
-            CurrentIndex = _index;
-            _memory = ReadOnlyMemory<char>.Empty;
-            _index = -1;
-            _isInRecord = false;
-            return true;
         }
 
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        private static bool IsAtDelimiter( ReadOnlySpan<char> span, ReadOnlySpan<char> delimiter, int i )
-            => span[i] == delimiter[0];
-
-        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        private void Move( int delimiterPosition )
+        private void ProcessBuffer()
         {
-            Current = _memory.Slice( 0, delimiterPosition );
-            CurrentIndex = _index;
+            if( _bufferLength == 0 ) Current = ReadOnlyMemory<char>.Empty;
+            else
+            {
+                Current = new ReadOnlyMemory<char>( _buffer, 0, _bufferLength );
+                _bufferLength = 0;
+            }
+        }
 
-            var moveAmount = delimiterPosition + 1;
-            _memory = _memory.Slice( moveAmount );
-            _index += moveAmount;
+        public void Dispose()
+        {
+            if( _stream == null ) return;
+            _stream.Flush();
+            _stream.Dispose();
         }
     }
 }

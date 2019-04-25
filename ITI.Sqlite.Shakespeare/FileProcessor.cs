@@ -4,13 +4,12 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Dapper;
 
 namespace ITI.Sqlite.Shakespeare
 {
-    internal sealed class FileProcessor
+    internal sealed class FileProcessor : IDisposable
     {
         private readonly SQLiteConnection _connection;
         private readonly SQLiteTransaction _transaction;
@@ -18,32 +17,18 @@ namespace ITI.Sqlite.Shakespeare
         private readonly Dictionary<string, int> _characters;
         private readonly Dictionary<string, int> _pieces;
 
-        private FileProcessor
+        public FileProcessor
         (
             SQLiteConnection connection,
             SQLiteTransaction transaction,
-            string content
+            Stream fileStream
         )
         {
             _connection = connection ?? throw new ArgumentNullException( nameof( connection ) );
             _transaction = transaction ?? throw new ArgumentNullException( nameof( transaction ) );
-            _reader = new DatReader( content ?? throw new ArgumentNullException( nameof( content ) ) );
+            _reader = new DatReader( fileStream ?? throw new ArgumentNullException( nameof( fileStream ) ) );
             _characters = new Dictionary<string, int>();
             _pieces = new Dictionary<string, int>();
-        }
-
-        public static async Task<FileProcessor> GetFileProcessor
-        (
-            SQLiteConnection connection,
-            SQLiteTransaction transaction,
-            string filePath
-        )
-        {
-            if( filePath == null ) throw new ArgumentNullException( nameof( filePath ) );
-            if( !File.Exists( filePath ) ) throw new ArgumentException( nameof( filePath ) );
-
-            var content = await File.ReadAllTextAsync( filePath, Encoding.UTF8 );
-            return new FileProcessor( connection, transaction, content );
         }
 
         public async Task ProcessFile()
@@ -137,7 +122,7 @@ namespace ITI.Sqlite.Shakespeare
             return characterId;
         }
 
-        public async ValueTask<int> InsertTirade( int pieceId, int characterId, int? act, int? scene )
+        private async ValueTask<int> InsertTirade( int pieceId, int characterId, int? act, int? scene )
             => await _connection.ExecuteScalarAsync<int>
                 (
                     @"
@@ -146,5 +131,10 @@ namespace ITI.Sqlite.Shakespeare
                     new { PieceId = pieceId, CharacterId = characterId, Act = act, Scene = scene },
                     _transaction
                 );
+
+        public void Dispose()
+        {
+            _reader?.Dispose();
+        }
     }
 }

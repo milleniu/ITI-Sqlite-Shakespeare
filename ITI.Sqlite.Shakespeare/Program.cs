@@ -1,6 +1,7 @@
 using System;
 using System.Data.SQLite;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace ITI.Sqlite.Shakespeare
@@ -22,7 +23,9 @@ namespace ITI.Sqlite.Shakespeare
                     await connection.OpenAsync();
                     var transaction = connection.BeginTransaction();
 
-                    await (await FileProcessor.GetFileProcessor( connection, transaction, filePath )).ProcessFile();
+                    using( var fileStream = File.OpenRead( filePath ) )
+                    using( var processor = new FileProcessor( connection, transaction, fileStream ) )
+                        await processor.ProcessFile();
 
                     transaction.Commit();
                 }
