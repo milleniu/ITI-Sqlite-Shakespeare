@@ -14,8 +14,14 @@ The image is already configured in the Dockerfile file. You can create it with t
 docker build -t shakespeare .
 ```
 
-Then create the container with:
+Then you can create the container with:
 
 ```bash
 docker create shakespeare
+```
+
+### Run the image
+
+```bash
+docker run -it --rm -v "[LocalResourcesPath]:[VolumeResourcesPath]" shakespeare "[VolumeResourcesPath]/database.sqlite" "[VolumeResourcesPath]/shakespeare.dat"
 ```

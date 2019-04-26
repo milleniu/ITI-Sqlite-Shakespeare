@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/runtime:2.2
+FROM mcr.microsoft.com/dotnet/core/runtime:2.2-alpine3.9
 
 COPY ITI.Sqlite.Shakespeare/bin/Release/netcoreapp2.2/publish ITI.Sqlite.Shakespeare
 
