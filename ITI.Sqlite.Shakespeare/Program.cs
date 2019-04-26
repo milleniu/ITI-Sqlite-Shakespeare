@@ -10,6 +10,13 @@ namespace ITI.Sqlite.Shakespeare
     {
         private static async Task Main( string[] args )
         {
+            if( args.Length < 2 )
+            {
+                Console.WriteLine( "At least two arguments are required" );
+                Console.WriteLine( "\t[$1]: Path to the .sqlite database file" );
+                Console.WriteLine( "\t[$2]: Path to the .dat data file" );
+            }
+
             var dbPath = args[0];
             var filePath = args[1];
 
