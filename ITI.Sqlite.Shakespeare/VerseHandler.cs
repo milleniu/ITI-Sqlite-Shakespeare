@@ -3,9 +3,8 @@ using System.Collections.Concurrent;
 using System.Data.SQLite;
 using System.Threading;
 using Dapper;
-using ITI.Sqlite.Shakespeare.Models;
 
-namespace ITI.Sqlite.Shakespeare.Database
+namespace ITI.Sqlite.Shakespeare
 {
     internal sealed class VerseHandler
     {

@@ -1,6 +1,4 @@
-using System;
-
-namespace ITI.Sqlite.Shakespeare.Models
+namespace ITI.Sqlite.Shakespeare
 {
     public readonly struct ParsedVerse
     {

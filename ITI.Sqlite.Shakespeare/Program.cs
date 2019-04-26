@@ -2,10 +2,7 @@ using System;
 using System.Data.SQLite;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
-using ITI.Sqlite.Shakespeare.Database;
-using ITI.Sqlite.Shakespeare.Processing;
 
 namespace ITI.Sqlite.Shakespeare
 {
@@ -19,9 +16,6 @@ namespace ITI.Sqlite.Shakespeare
             var sw = new Stopwatch();
             sw.Start();
 
-            var fileProcessor = new FileProcessor();
-            await fileProcessor.LoadFile( filePath );
-
             using( var connection = new SQLiteConnection( $"Data source={dbPath};Version=3;" ) )
             {
                 try
@@ -29,7 +23,9 @@ namespace ITI.Sqlite.Shakespeare
                     await connection.OpenAsync();
                     var transaction = connection.BeginTransaction();
 
-                    await fileProcessor.ProcessFile( connection, transaction );
+                    using( var fileStream = File.OpenRead( filePath ) )
+                    using( var processor = new FileProcessor( connection, transaction, fileStream ) )
+                        await processor.ProcessFile();
 
                     transaction.Commit();
                 }
@@ -45,11 +41,10 @@ namespace ITI.Sqlite.Shakespeare
                 {
                     connection.Close();
                 }
-            }
-
+            }   
 
             sw.Stop();
-            Console.WriteLine( $"Run: {sw.ElapsedMilliseconds}ms" );
+            Console.WriteLine( $"Ran for {sw.ElapsedMilliseconds}ms" );
         }
     }
 }
