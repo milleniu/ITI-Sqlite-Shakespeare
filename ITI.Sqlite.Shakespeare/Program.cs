@@ -41,7 +41,7 @@ namespace ITI.Sqlite.Shakespeare
                 {
                     connection.Close();
                 }
-            }
+            }   
 
             sw.Stop();
             Console.WriteLine( $"Ran for {sw.ElapsedMilliseconds}ms" );

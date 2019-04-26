@@ -88,7 +88,7 @@ namespace ITI.Sqlite.Shakespeare
             verseHandler.Finalize( 3_600_000 );
         }
 
-        public async ValueTask<int> GetPieceId( string title )
+        private async ValueTask<int> GetPieceId( string title )
         {
             if( _pieces.TryGetValue( title, out var id ) ) return id;
 
